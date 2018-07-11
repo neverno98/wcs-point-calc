@@ -18,7 +18,7 @@ function initJudge() {
 
     var judgeCount = parseInt(Browser.inputBox("input judge count"));
     if(judgeCount == "") {
-        judgeCount = 4;
+        judgeCount = 5;
     }
     PropertiesService.getScriptProperties().setProperty('judgeCount', judgeCount);
     return judgeCount;
@@ -126,6 +126,7 @@ function unhide(sheet) {
 // 다 같으면 다음 점수가 낮은 쪽이 승리한다.
 // 이것 까지 다 같으면 더 많은 저지가 낮은 등수를 준 쪽이 승리한다.
 // 저지 마다 점수 배정(ex) 0.8) 이 있을 수도 있다지만, 우린 알수가 없다.
+// 같은 등수에서 동수가 나왔을 경우의 나뉘어 져도 우선 높은 등수를 받는다.
 function calcFinal() {
 
     var sheet = SpreadsheetApp.getActiveSheet();
@@ -136,11 +137,18 @@ function calcFinal() {
 
     var rowCount = values.length - calcStartRow;
 
-    printPointArray(sheet, rowCount, rankStart);
-    printRankCount(sheet, values, judgeCount, rowCount, rankStart);
+    printPointArray(rowCount, rankStart);
+    printRankCount(judgeCount, rowCount, rankStart);
+
+    var rank = 2;
+    var targetRow = lineUp(judgeCount, rowCount, rank);
+
+    Browser.msgBox("targetRow=" + targetRow + ", rank=" + rank);
 }
 
-function printPointArray(sheet, rowCount, rankStart) {
+function printPointArray(rowCount, rankStart) {
+
+    var sheet = SpreadsheetApp.getActiveSheet();
 
     var index = 1;
     var col = rankStart;
@@ -150,7 +158,10 @@ function printPointArray(sheet, rowCount, rankStart) {
     }
 }
 
-function printRankCount(sheet, values, judgeCount, rowCount, rankStart) {
+function printRankCount(judgeCount, rowCount, rankStart) {
+
+    var sheet = SpreadsheetApp.getActiveSheet();
+    var values = sheet.getDataRange().getValues();
 
     for (var row = calcStartRow; row < rowCount + calcStartRow; row++) {
 
@@ -158,12 +169,9 @@ function printRankCount(sheet, values, judgeCount, rowCount, rankStart) {
         var col = rankStart;
         while( index <= rowCount) {
 
-//      Browser.msgBox("index=" + index + " row=" + row);
-
             var count = getRankCount(sheet, values, judgeCount, row, index);
-            if(count > 0) {
-                sheet.getRange(String.fromCharCode(col) + (row+1)).setHorizontalAlignment("center").setValue(count);
-            }
+            sheet.getRange(String.fromCharCode(col) + (row+1)).setHorizontalAlignment("center").setValue(count);
+
             col++;
             index++;
         }
@@ -175,17 +183,80 @@ function getRankCount(sheet, values, judgeCount, row, index) {
     var count = 0;
     for( var col = calcStartCol; col < calcStartCol + judgeCount; col++) {
 
-//    Browser.msgBox("col=" + col + " row=" + row + ", values[row][col]=" + values[row][col]);
-
-        if(values[row][col] >= index) {
+        if(values[row][col] <= index) {
             count++;
         }
     }
-//  Browser.msgBox("count=" + count);
     return count;
 }
 
+function calcPoint(judgeCount, rowCount) {
 
+    var sheet = SpreadsheetApp.getActiveSheet();
+    var range = sheet.getDataRange().getValues();
+
+    var rank = 1;
+    var calcJudgeCount = parseInt(judgeCount / 2) + 1;
+    var col = calcStartCol + judgeCount + rank;
+    var colEnd = col + rowCount;
+
+    for (var row = calcStartRow; row < rowCount + calcStartRow; row++) {
+
+        var list = [];
+        for (; col < colEnd; col++) {
+
+            if( values[row][col] >= calcJudgeCount ) {
+
+                list.push(row);
+            }
+        }
+    }
+}
+
+function lineUp(judgeCount, rowCount, rank, colTarget) {
+
+    var sheet = SpreadsheetApp.getActiveSheet();
+    var range = sheet.getDataRange().getValues();
+
+    var calcJudgeCount = parseInt(judgeCount / 2) + 1;
+    var col = calcStartCol + judgeCount + colTarget;
+    var colEnd = col + rowCount - colTarget;
+
+    var list = [];
+
+    for (; col < colEnd; col++) {
+
+        for (var row = calcStartRow + rank - 1; row < calcStartRow + rowCount - (rank - 1); row++) {
+
+            if( values[row][col] >= calcJudgeCount ) {
+                list.push(row);
+            }
+        }
+    }
+
+    var scorer = list.length;
+    if(scorer == 1) {
+
+    } else if(scorer > 2) {
+    }
+    return scorer;
+}
+
+function lineUpOne(judgeCount, rowCount, rank, target) {
+
+    var sheet = SpreadsheetApp.getActiveSheet();
+    var range = sheet.getDataRange().getValues();
+
+    var row = calcStartRow + rank - 1;
+
+    for (var row = calcStartRow + rank - 1; row < calcStartRow + rowCount - (rank - 1); row++) {
+
+        if( values[row][col] >= calcJudgeCount ) {
+            list.push(row);
+        }
+    }
+
+}
 
 
 
