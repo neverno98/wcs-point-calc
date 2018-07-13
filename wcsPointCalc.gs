@@ -221,14 +221,16 @@ function findRank(judgeCount, calcJudgeCount, rowCount, rank, colTarget) {
         }
     }
 
-    if(list.length <= 1) {
-        return list;
+    if(list.length > 1) {
+        list = orderList(list, judgeCount);
     }
-
     return list;
 }
 
-function orderList(list) {
+function orderList(list, judgeCount) {
+
+    var sheet = SpreadsheetApp.getActiveSheet();
+    var values = sheet.getDataRange().getValues();
 
     var orderList = [];
     for(var i = 0; i < list.length; i++) {
@@ -237,17 +239,33 @@ function orderList(list) {
         var row = list[i] - 1;
         for( var col = calcStartCol; col < calcStartCol + judgeCount; col++) {
 
-            sum += values[row][col];
+            sum += parseInt(values[row][col]);
         }
+        Browser.msgBox("orderList() sum=" + sum);
         orderList.push(sum);
     }
 
     for(var i = 0; i < orderList.length; i++) {
 
-        var row = orderList[i] - 1;
+        var min = orderList[i];
+        for(var j = i+1; j < orderList.length; j++ ) {
+
+            if(min > orderList[j]) {
+                min = orderList[j];
+                orderList[j] = orderList[i];
+                orderList[i] = min;
+                var temp = list[j];
+                list[j] = list[i];
+                list[i] = temp;
+            }
+
+        }
     }
 
-    return rank;
+    for(var i = 0; i < list.length; i++) {
+        Browser.msgBox("list[i]=" + list[i]);
+    }
+    return list;
 }
 
 
