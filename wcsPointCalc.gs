@@ -214,15 +214,42 @@ function findRank(judgeCount, calcJudgeCount, rowCount, rank, colTarget) {
 
     var list = [];
 
-    for (var row = calcStartRow + rank; row < calcStartRow + rowCount - (rank); row++) {
+    for (var row = calcStartRow + rank - 1; row < calcStartRow + rowCount; row++) {
 
         if( values[row][col] >= calcJudgeCount ) {
-            Browser.msgBox("findRank row=" + row + ", col=" + col + ", values[row][col]=" + values[row][col]);
             list.push(row+1);
         }
     }
+
+    if(list.length <= 1) {
+        return list;
+    }
+
     return list;
 }
+
+function orderList(list) {
+
+    var orderList = [];
+    for(var i = 0; i < list.length; i++) {
+
+        var sum = 0;
+        var row = list[i] - 1;
+        for( var col = calcStartCol; col < calcStartCol + judgeCount; col++) {
+
+            sum += values[row][col];
+        }
+        orderList.push(sum);
+    }
+
+    for(var i = 0; i < orderList.length; i++) {
+
+        var row = orderList[i] - 1;
+    }
+
+    return rank;
+}
+
 
 function replaceRank(rank, list) {
 
