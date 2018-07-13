@@ -84,7 +84,7 @@ function calcPrelim() {
     calcPrelimTotal(sheet, values, judgeCount,totalColumn);
     range.sort(calcStartCol + judgeCount + 1);
     unhide(sheet);
-    orderPrelim(sheet, values);
+    order(sheet, values);
     sheet.setActiveRange(sheet.getRange("A1"));
 
     Browser.msgBox("Calc Prelim End. Check it!!");
@@ -103,7 +103,7 @@ function calcPrelimTotal(sheet, values, judgeCount, totalColumn) {
     }
 }
 
-function orderPrelim(sheet, values) {
+function order(sheet, values) {
 
     for (var i = 1; i < values.length-1; i++) {
 
@@ -140,10 +140,8 @@ function calcFinal() {
     printPointArray(rowCount, rankStart);
     printRankCount(judgeCount, rowCount, rankStart);
 
-    var rank = 2;
-    var targetRow = lineUp(judgeCount, rowCount, rank);
-
-    Browser.msgBox("targetRow=" + targetRow + ", rank=" + rank);
+    calcPoint(judgeCount, rowCount);
+    order(sheet, values);
 }
 
 function printPointArray(rowCount, rankStart) {
@@ -192,70 +190,71 @@ function getRankCount(sheet, values, judgeCount, row, index) {
 
 function calcPoint(judgeCount, rowCount) {
 
-    var sheet = SpreadsheetApp.getActiveSheet();
-    var range = sheet.getDataRange().getValues();
-
-    var rank = 1;
     var calcJudgeCount = parseInt(judgeCount / 2) + 1;
-    var col = calcStartCol + judgeCount + rank;
-    var colEnd = col + rowCount;
-
-    for (var row = calcStartRow; row < rowCount + calcStartRow; row++) {
-
-        var list = [];
-        for (; col < colEnd; col++) {
-
-            if( values[row][col] >= calcJudgeCount ) {
-
-                list.push(row);
-            }
-        }
-    }
-}
-
-function lineUp(judgeCount, rowCount, rank, colTarget) {
-
-    var sheet = SpreadsheetApp.getActiveSheet();
-    var range = sheet.getDataRange().getValues();
-
-    var calcJudgeCount = parseInt(judgeCount / 2) + 1;
-    var col = calcStartCol + judgeCount + colTarget;
-    var colEnd = col + rowCount - colTarget;
 
     var list = [];
 
-    for (; col < colEnd; col++) {
+    var row = calcStartRow + rank;
+    var colTarget = 1;
+    var rank = 1;
+    while (rank <= rowCount ) {
 
-        for (var row = calcStartRow + rank - 1; row < calcStartRow + rowCount - (rank - 1); row++) {
-
-            if( values[row][col] >= calcJudgeCount ) {
-                list.push(row);
-            }
-        }
+        var list = findRank(judgeCount, calcJudgeCount, rowCount, rank, colTarget);
+        rank = replaceRank(rank, list);
+        colTarget++;
     }
-
-    var scorer = list.length;
-    if(scorer == 1) {
-
-    } else if(scorer > 2) {
-    }
-    return scorer;
 }
 
-function lineUpOne(judgeCount, rowCount, rank, target) {
+function findRank(judgeCount, calcJudgeCount, rowCount, rank, colTarget) {
+
+    var sheet = SpreadsheetApp.getActiveSheet();
+    var values = sheet.getDataRange().getValues();
+
+    var col = calcStartCol + judgeCount + colTarget;
+
+    var list = [];
+
+    for (var row = calcStartRow + rank; row < calcStartRow + rowCount - (rank); row++) {
+
+        if( values[row][col] >= calcJudgeCount ) {
+            Browser.msgBox("findRank row=" + row + ", col=" + col + ", values[row][col]=" + values[row][col]);
+            list.push(row+1);
+        }
+    }
+    return list;
+}
+
+function replaceRank(rank, list) {
+
+    if(list.length <= 0) {
+        return rank;
+    }
+
+    for(var i=0; i < list.length; i++) {
+
+        var row = list[i];
+        copyRank(rank, row);
+        rank++;
+    }
+    return rank;
+}
+
+function copyRank(rank, row) {
 
     var sheet = SpreadsheetApp.getActiveSheet();
     var range = sheet.getDataRange().getValues();
 
-    var row = calcStartRow + rank - 1;
+    var lRow = sheet.getLastRow();
+    var lCol = sheet.getLastColumn();
 
-    for (var row = calcStartRow + rank - 1; row < calcStartRow + rowCount - (rank - 1); row++) {
+    var range = sheet.getRange(rank + calcStartRow, 1, 1, lCol);
+    var tempRange = sheet.getRange(lRow + calcStartRow, 1, 1, lCol);
+    var targetRange = sheet.getRange(row, 1, 1, lCol);
 
-        if( values[row][col] >= calcJudgeCount ) {
-            list.push(row);
-        }
-    }
-
+    range.copyTo(tempRange);
+    targetRange.copyTo(range);
+    tempRange.copyTo(targetRange);
+    tempRange.deleteCells(SpreadsheetApp.Dimension.COLUMNS);
 }
 
 
