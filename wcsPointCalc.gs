@@ -4,6 +4,9 @@ var menuRow = "2";
 var calcStartRow = 2;
 var calcStartCol = 3;
 
+var checkRank = 0;
+var nowRank = 0;
+
 function onOpen() {
 
     var ui = SpreadsheetApp.getUi();
@@ -194,14 +197,13 @@ function calcPoint(judgeCount, rowCount) {
 
     var list = [];
 
-    var row = calcStartRow + rank;
+    var row = calcStartRow + 1;
     var colTarget = 1;
-    var rank = 1;
-    while (rank <= rowCount ) {
+    checkRank = 1;
+    while (checkRank < rowCount ) {
 
-        var list = findRank(judgeCount, calcJudgeCount, rowCount, rank, colTarget);
-        rank = replaceRank(rank, list);
-        colTarget++;
+        var list = findRank(judgeCount, calcJudgeCount, rowCount, checkRank, colTarget);
+        colTarget = replaceRank(list, colTarget, judgeCount);
     }
 }
 
@@ -213,21 +215,34 @@ function findRank(judgeCount, calcJudgeCount, rowCount, rank, colTarget) {
     var col = calcStartCol + judgeCount + colTarget;
 
     var list = [];
+    var pointCount = 0;
+    nowRank = 0;
 
     for (var row = calcStartRow + rank - 1; row < calcStartRow + rowCount; row++) {
 
         if( values[row][col] >= calcJudgeCount ) {
-            list.push(row+1);
+
+            nowRank++;
+            if(values[row][col] > pointCount) {
+
+                pointCount = values[row][col];
+                list = [];
+                list.push(row);
+
+            } else if(values[row][col] == pointCount) {
+                list.push(row);
+            }
         }
     }
 
     if(list.length > 1) {
-        list = orderList(list, judgeCount);
+        list = orderList(list, judgeCount, colTarget);
     }
+
     return list;
 }
 
-function orderList(list, judgeCount) {
+function orderList(list, judgeCount, colTarget) {
 
     var sheet = SpreadsheetApp.getActiveSheet();
     var values = sheet.getDataRange().getValues();
@@ -236,21 +251,24 @@ function orderList(list, judgeCount) {
     for(var i = 0; i < list.length; i++) {
 
         var sum = 0;
-        var row = list[i] - 1;
+        var row = list[i];
         for( var col = calcStartCol; col < calcStartCol + judgeCount; col++) {
 
-            sum += parseInt(values[row][col]);
+            if(values[row][col] <= colTarget) {
+                sum += parseInt(values[row][col]);
+            }
         }
-        Browser.msgBox("orderList() sum=" + sum);
         orderList.push(sum);
     }
 
     for(var i = 0; i < orderList.length; i++) {
 
         var min = orderList[i];
+
         for(var j = i+1; j < orderList.length; j++ ) {
 
             if(min > orderList[j]) {
+
                 min = orderList[j];
                 orderList[j] = orderList[i];
                 orderList[i] = min;
@@ -258,36 +276,32 @@ function orderList(list, judgeCount) {
                 list[j] = list[i];
                 list[i] = temp;
             }
-
         }
     }
 
-    for(var i = 0; i < list.length; i++) {
-        Browser.msgBox("list[i]=" + list[i]);
-    }
     return list;
 }
 
 
-function replaceRank(rank, list) {
+function replaceRank(list, colTarget, judgeCount) {
 
-    if(list.length <= 0) {
-        return rank;
+    if(nowRank == 0) {
+        return colTarget + 1;
     }
 
-    for(var i=0; i < list.length; i++) {
+    copyRank(checkRank, list[0]+1, colTarget);
+    checkRank++;
 
-        var row = list[i];
-        copyRank(rank, row);
-        rank++;
+    if(nowRank > 1) {
+        return colTarget + 1;
     }
-    return rank;
+    return colTarget;
 }
 
-function copyRank(rank, row) {
+function copyRank(rank, row, colTarget, judgeCount) {
 
     var sheet = SpreadsheetApp.getActiveSheet();
-    var range = sheet.getDataRange().getValues();
+    var values = sheet.getDataRange().getValues();
 
     var lRow = sheet.getLastRow();
     var lCol = sheet.getLastColumn();
@@ -300,6 +314,14 @@ function copyRank(rank, row) {
     targetRange.copyTo(range);
     tempRange.copyTo(targetRange);
     tempRange.deleteCells(SpreadsheetApp.Dimension.COLUMNS);
+
+    var col = calcStartCol + judgeCount + colTarget;
+    var x = rank + calcStartRow;
+    Browser.msgBox("copyRank() col=" + col + ", x=" + x + ", lCol=" + lCol);
+    for(var y = col+1; y <= lCol - col; y++) {
+
+        Browser.msgBox("copyRank() x=" + x + ", y=" + y + ", values[x][y]=" + values[x][y]);
+    }
 }
 
 
