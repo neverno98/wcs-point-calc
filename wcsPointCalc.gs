@@ -1,5 +1,6 @@
 
 var aCode = 65;
+var zCode = 90;
 var menuRow = "2";
 var calcStartRow = 2;
 var calcStartCol = 3;
@@ -27,6 +28,18 @@ function initJudge() {
     return judgeCount;
 }
 
+function getXy(row, col) {
+
+    var add = "";
+    if(col > zCode) {
+
+        add = "A";
+        col = col - zCode + aCode -1;
+    }
+//  Browser.msgBox("getXy() col=" + col + "Alpha=" + String.fromCharCode(col));
+    return add + String.fromCharCode(col) + row;
+}
+
 function readyPrelim() {
 
     var judgeCount = initJudge();
@@ -35,8 +48,8 @@ function readyPrelim() {
     var index = printBasicMenu(sheet, judgeCount);
     PropertiesService.getScriptProperties().setProperty('totalColumn', String.fromCharCode(index));
 
-    sheet.getRange(String.fromCharCode(index++) + menuRow).setHorizontalAlignment("center").setValue("Total");
-    sheet.getRange(String.fromCharCode(index++) + menuRow).setHorizontalAlignment("center").setValue("Chief");
+    sheet.getRange(getXy(menuRow, index++)).setHorizontalAlignment("center").setValue("Total");
+    sheet.getRange(getXy(menuRow, index++)).setHorizontalAlignment("center").setValue("Chief");
 
     Browser.msgBox("Add Point and Next Calc Prelim");
 }
@@ -48,7 +61,7 @@ function readyFinal() {
     var sheet = SpreadsheetApp.getActiveSheet();
     var index = printBasicMenu(sheet, judgeCount);
 
-    sheet.getRange(String.fromCharCode(index++) + menuRow).setHorizontalAlignment("center").setValue("Chief");
+    sheet.getRange(getXy(menuRow, index++)).setHorizontalAlignment("center").setValue("Chief");
     PropertiesService.getScriptProperties().setProperty('rankStart', index);
 
     Browser.msgBox("Add Point and Next Calc Final");
@@ -57,13 +70,13 @@ function readyFinal() {
 function printBasicMenu(sheet, judgeCount) {
 
     var index = aCode;
-    sheet.getRange(String.fromCharCode(index++) + menuRow).setHorizontalAlignment("center").setValue("Rank");
-    sheet.getRange(String.fromCharCode(index++) + menuRow).setHorizontalAlignment("center").setValue("#");
-    sheet.getRange(String.fromCharCode(index++) + menuRow).setHorizontalAlignment("center").setValue("name");
+    sheet.getRange(getXy(menuRow, index++)).setHorizontalAlignment("center").setValue("Rank");
+    sheet.getRange(getXy(menuRow, index++)).setHorizontalAlignment("center").setValue("#");
+    sheet.getRange(getXy(menuRow, index++)).setHorizontalAlignment("center").setValue("name");
 
     for(var i = aCode; i < aCode + judgeCount; i++) {
 
-        sheet.getRange(String.fromCharCode(index++) + menuRow).setHorizontalAlignment("center").setValue(String.fromCharCode(i));
+        sheet.getRange(getXy(menuRow, index++)).setHorizontalAlignment("center").setValue(String.fromCharCode(i));
     }
 
     return index;
@@ -155,7 +168,9 @@ function printPointArray(rowCount, rankStart) {
     var col = rankStart;
     while( index <= rowCount) {
 
-        sheet.getRange(String.fromCharCode(col++) + menuRow).setHorizontalAlignment("center").setValue("1-" + index++);
+//    var xy = getXy(menuRow, col++);
+//    Browser.msgBox("printPointArray() xy=" + xy);
+        sheet.getRange(getXy(menuRow, col++)).setHorizontalAlignment("center").setValue("1-" + index++);
     }
 }
 
@@ -171,7 +186,7 @@ function printRankCount(judgeCount, rowCount, rankStart) {
         while( index <= rowCount) {
 
             var count = getRankCount(sheet, values, judgeCount, row, index);
-            sheet.getRange(String.fromCharCode(col) + (row+1)).setHorizontalAlignment("center").setValue(count);
+            sheet.getRange(getXy((row+1), col)).setHorizontalAlignment("center").setValue(count);
 
             col++;
             index++;
@@ -282,7 +297,6 @@ function orderList(list, judgeCount, colTarget) {
     return list;
 }
 
-
 function replaceRank(list, colTarget, judgeCount) {
 
     if(nowRank == 0) {
@@ -293,9 +307,9 @@ function replaceRank(list, colTarget, judgeCount) {
     checkRank++;
 
     if(nowRank > 1) {
-        return colTarget + 1;
+        return colTarget;
     }
-    return colTarget;
+    return colTarget+1;
 }
 
 function copyRank(rank, row, colTarget, judgeCount) {
