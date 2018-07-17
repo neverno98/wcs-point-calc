@@ -53,7 +53,7 @@ Calc Filnal
 1. 새로운 구글 시트를 연다.
 2. Tools -> Script Editor 를 연다.
 3. script 에 wcsPointCalc.gs 의 내용을 복사, ctrl+s 하여 저장.
-4. <Calc Wcs Competition Rank> 메뉴가 나오면 실행이 가능하다.
+4. Calc Wcs Competition Rank 메뉴가 나오면 실행이 가능하다.
 
 
 예제 링크
