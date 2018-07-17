@@ -289,7 +289,7 @@ function replaceRank(list, colTarget, judgeCount) {
         return colTarget + 1;
     }
 
-    copyRank(checkRank, list[0]+1, colTarget);
+    copyRank(checkRank, list[0]+1, colTarget, judgeCount);
     checkRank++;
 
     if(nowRank > 1) {
@@ -315,40 +315,4 @@ function copyRank(rank, row, colTarget, judgeCount) {
     tempRange.copyTo(targetRange);
     tempRange.deleteCells(SpreadsheetApp.Dimension.COLUMNS);
 
-    var col = calcStartCol + judgeCount + colTarget;
-    var x = rank + calcStartRow;
-    Browser.msgBox("copyRank() col=" + col + ", x=" + x + ", lCol=" + lCol);
-    for(var y = col+1; y <= lCol - col; y++) {
-
-        Browser.msgBox("copyRank() x=" + x + ", y=" + y + ", values[x][y]=" + values[x][y]);
-    }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
